@@ -71,6 +71,7 @@ const AppLayout = ({ children }) => {
     { text: 'Monitoreo en Vivo', icon: <Timeline />, path: '/live-monitoring' },
     { text: 'Alarmas', icon: <Warning />, path: '/alarms' },
     { text: 'Configuración', icon: <Settings />, path: '/settings' },
+    { text: 'Simulación', icon: <Settings />, path: '/simulador' },
   ];
 
   const drawer = (
