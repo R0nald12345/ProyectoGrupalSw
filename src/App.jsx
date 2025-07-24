@@ -24,6 +24,7 @@ import LiveMonitoringPage from './pages/LiveMonitoringPage';
 import PagePrincipal from './components/loadingPage/components/page/PagePrincipal'
 import PageLogin from './components/auth/page/PageLogin';
 import PageRegister from './components/auth/page/PageRegister';
+import ResultadoSimulador from './pages/ResultadoSimulador';
 
 function App() {
   const { isLoggedIn } = useAuthStore();
@@ -35,7 +36,6 @@ function App() {
       <ErrorBoundary>
         <Router>
           <Routes>
-
 
             {/* <Route 
               path="/login" 
@@ -52,8 +52,13 @@ function App() {
               element={<PageRegister/>} 
             />
 
+            <Route 
+              path="/simulador" 
+              element={<ResultadoSimulador/>} 
+            />
 
-{/*             <Route 
+
+    {/*             <Route 
               path="/" 
               element={<Navigate to="/dashboard" replace />} 
             /> */}
