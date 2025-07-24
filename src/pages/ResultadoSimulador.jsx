@@ -4,6 +4,7 @@ import ReactECharts from 'echarts-for-react';
 import { aiService } from "../service/aiService";
 import { FaPlay, FaPause, FaRedo, FaExclamationTriangle } from 'react-icons/fa';
 
+
 const JsxRenderer = ({ jsxString }) => {
     const [Component, setComponent] = useState(null);
     const [error, setError] = useState(null);
@@ -87,12 +88,23 @@ const ResultadoSimulador = () => {
             setIsAudioLoading(true);
             setAudioError(null);
             try {
+                console.log('Iniciando carga de audio...');
                 const audioBlob = await aiService.getAudioSummary();
+                console.log('Audio blob recibido:', audioBlob);
+                console.log('Tamaño del blob:', audioBlob.size);
+                console.log('Tipo del blob:', audioBlob.type);
+                
+                if (audioBlob.size === 0) {
+                    throw new Error('El archivo de audio está vacío');
+                }
+                
                 const url = URL.createObjectURL(audioBlob);
+                console.log('URL del audio creada:', url);
                 setAudioUrl(url);
             } catch (err) {
-                console.error(err);
-                setAudioError("No se pudo cargar el audio.");
+                console.error('Error detallado en fetchAudio:', err);
+                const errorMessage = err instanceof Error ? err.message : "No se pudo cargar el audio.";
+                setAudioError(errorMessage);
             } finally {
                 setIsAudioLoading(false);
             }
@@ -106,23 +118,51 @@ const ResultadoSimulador = () => {
 
         if (!audioRef.current) {
             const audio = new Audio(audioUrl);
-            audio.addEventListener('play', () => setIsPlaying(true));
-            audio.addEventListener('pause', () => setIsPlaying(false));
-            audio.addEventListener('ended', () => setIsPlaying(false));
+            
+            // Agregar más eventos para debugging
+            audio.addEventListener('loadstart', () => console.log('Audio: Comenzando a cargar'));
+            audio.addEventListener('loadeddata', () => console.log('Audio: Datos cargados'));
+            audio.addEventListener('canplay', () => console.log('Audio: Puede reproducirse'));
+            audio.addEventListener('play', () => {
+                console.log('Audio: Reproduciendo');
+                setIsPlaying(true);
+            });
+            audio.addEventListener('pause', () => {
+                console.log('Audio: Pausado');
+                setIsPlaying(false);
+            });
+            audio.addEventListener('ended', () => {
+                console.log('Audio: Terminado');
+                setIsPlaying(false);
+            });
+            audio.addEventListener('error', (e) => {
+                console.error('Error en audio:', e);
+                setAudioError('Error al reproducir el audio');
+                setIsPlaying(false);
+            });
+            
             audioRef.current = audio;
         }
         
         if (isPlaying) {
             audioRef.current.pause();
         } else {
-            audioRef.current.play();
+            audioRef.current.play().catch(error => {
+                console.error('Error al reproducir audio:', error);
+                setAudioError('No se pudo reproducir el audio');
+                setIsPlaying(false);
+            });
         }
     };
 
     const handleReplay = () => {
         if (audioRef.current) {
             audioRef.current.currentTime = 0;
-            audioRef.current.play();
+            audioRef.current.play().catch(error => {
+                console.error('Error al reproducir audio desde el inicio:', error);
+                setAudioError('No se pudo reproducir el audio');
+                setIsPlaying(false);
+            });
         }
     };
 

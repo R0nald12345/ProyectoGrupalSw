@@ -63,25 +63,50 @@ export const aiService = {
                 `${API_URL}/ai-gemini/rawDataToText/${API_KEY}`,
                 rawData,
                 { 
-                    headers: getAuthHeaders(),
+                    headers: {
+                        ...getAuthHeaders(),
+                        'Content-Type': 'application/json'
+                    },
                     responseType: 'blob'
                 }
             );
 
-            // El servidor podría enviar un error como un blob JSON
-            if (response.data.type === 'application/json') {
-                 const errorJson = await response.data.text();
-                 console.error("La API de audio devolvió un error JSON:", errorJson);
-                 throw new Error("El servidor de audio devolvió un error en formato JSON.");
+            // Verificar que la respuesta sea realmente un audio
+            const contentType = response.headers['content-type'];
+            
+            if (contentType && contentType.includes('application/json')) {
+                // Si es JSON, es probablemente un error
+                const errorText = await response.data.text();
+                console.error("La API de audio devolvió un error JSON:", errorText);
+                throw new Error("El servidor de audio devolvió un error en formato JSON.");
             }
+
+            // Verificar que sea un tipo de audio válido
+            if (!contentType || !contentType.includes('audio')) {
+                console.warn("Tipo de contenido inesperado:", contentType);
+                // Aún así intentar procesar como audio
+            }
+
+            // Verificar que el blob no esté vacío
+            if (response.data.size === 0) {
+                throw new Error("El archivo de audio está vacío.");
+            }
+
             return response.data;
         } catch (error) {
             console.error("Error obteniendo resumen de audio:", error);
+            
             // Si la respuesta es un error y los datos son un blob, intentar leerlo para más detalles
             if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
-                const errorText = await error.response.data.text();
-                console.error("Error detallado de la API de audio desde blob:", errorText);
+                try {
+                    const errorText = await error.response.data.text();
+                    console.error("Error detallado de la API de audio desde blob:", errorText);
+                    throw new Error(`Error del servidor: ${errorText}`);
+                } catch (blobError) {
+                    console.error("No se pudo leer el error del blob:", blobError);
+                }
             }
+            
             throw error;
         }
     }
