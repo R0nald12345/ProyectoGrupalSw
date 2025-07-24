@@ -22,6 +22,8 @@ import CreateBuildingPage from './pages/CreateBuildingPage';
 import LiveMonitoringPage from './pages/LiveMonitoringPage';
 
 import PagePrincipal from './components/loadingPage/components/page/PagePrincipal'
+import PageLogin from './components/auth/page/PageLogin';
+import PageRegister from './components/auth/page/PageRegister';
 
 function App() {
   const { isLoggedIn } = useAuthStore();
@@ -35,9 +37,19 @@ function App() {
           <Routes>
 
 
-            <Route 
+            {/* <Route 
               path="/login" 
               element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+            /> */}
+
+            <Route 
+              path="/login" 
+              element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <PageLogin/>} 
+            />
+
+            <Route 
+              path="/register" 
+              element={<PageRegister/>} 
             />
 
 
@@ -57,6 +69,21 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+
+
+        
+
+
+            {/* <Route 
+              path="/register" 
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PageRegister/>
+                  </AppLayout>
+                </ProtectedRoute>
+              } 
+            /> */}
 
 
             <Route 

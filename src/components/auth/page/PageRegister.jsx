@@ -1,16 +1,16 @@
+import React from 'react'
 import { useForm } from "react-hook-form";
-import imgenFondo from "../../../../public/imagenFondo.png";
+import imgenFondo from "../img/imagenFondo.png";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { registerUserApi } from "../service/authService";
 import { useClienteIdStore } from "../../../store/useClienteIdStore";
+import Swal from "sweetalert2";
 
 const PageRegister = () => {
-  const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { clienteId: zustandClienteId, rolId: zustandRolId } = useClienteIdStore();
+  const { clienteId: zustandClienteId } = useClienteIdStore();
 
   const clienteId = zustandClienteId ?? Number(localStorage.getItem("idCliente"));
-  const rolId = zustandRolId ?? Number(localStorage.getItem("rolId"));
 
   const {
     register,
@@ -19,29 +19,44 @@ const PageRegister = () => {
     formState: { errors },
   } = useForm();
 
+  const [isLoading, setIsLoading] = React.useState(false);
+
   const onSubmit = async (data) => {
-    if (!clienteId) {
+    /* if (!clienteId) {
       setError("root", { message: "No hay cliente seleccionado. Debe crear una empresa primero." });
       return;
-    }
-
-    if (!rolId) {
-      setError("root", { message: "No hay rol seleccionado." });
-      return;
-    }
+    } */
 
     try {
       const payload = {
         ...data,
-        rol_id: rolId,
-        cliente_id: clienteId,
+        rol_id: 2,
+        cliente_id: 7,
         activo: true
       };
 
-      await registerUser(payload);
-      navigate("/auth");
+      setIsLoading(true);
+      await registerUserApi(payload);
+
+      // SweetAlert de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "¡Registro exitoso!",
+        text: "El usuario fue registrado correctamente.",
+        confirmButtonText: "Ir al login"
+      });
+
+      navigate("/login");
     } catch (error) {
-      setError("root", { message: "Error en el registro. Intente nuevamente." });
+      // SweetAlert de error
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Error en el registro. Intente nuevamente.",
+      });
+      setError("root", { message: error.message || "Error en el registro. Intente nuevamente." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -110,7 +125,7 @@ const PageRegister = () => {
                 <button
                   type="button"
                   className="font-mplus-bold bg-green-700 text-white py-2 px-4 rounded hover:bg-green-800 w-full cursor-pointer"
-                  onClick={() => navigate("/auth/login")}
+                  onClick={() => navigate("/login")}
                 >
                   Ya tengo cuenta
                 </button>
